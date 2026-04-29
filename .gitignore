@@ -1,3 +1,4 @@
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -18,27 +19,30 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
+
+# Virtual environments
 venv/
 ENV/
 env/
-.venv
-.env
-.pytest_cache/
-.coverage
-htmlcov/
-.DS_Store
+
+# IDE
+.vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# Data files (keep directory structure)
-data/raw/*
-!data/raw/.gitkeep
-data/processed/*
-!data/processed/.gitkeep
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 
-# Results
-results/*
-!results/.gitkeep
+# Project-specific
+data/
+results/
+*.csv
+*.log
+
