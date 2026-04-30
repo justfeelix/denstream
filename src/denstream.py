@@ -37,9 +37,26 @@ class DenStream:
         """Trigger the offline phase to get the current clustering"""
 
         # TODO: fetch summaries and call the framework's predict_assignment method
-    
+
+        # here differntiate between two cases:
+        #   1. if the user wants to know how the bubbles are clustered, they call predict() with no argument and return predict_summaries()
+        #   2. if the user wants to evaluate the algorithm against a specific batch of raw points (for example when evaluating with cmm) they can call predict(X_batch)
+
+        # fetch summaries
         summaries = self.online_phase.get_summary()
-        #...
+        # 1st case
+        if X_batch is None:
+            return self.offline_phase.predict_summaries(summaries)
+        #2nd case
+        else:
+            # The user wants to cluster specific raw data points (X_batch)
+            assignments = []
+            #TODO:  assign a raw point to a cluster -> find its nearest PMC
+
+            # at the end call the self.offline_phase.predict_assignment(assignments, summaries)
+            # and return ouput
+
+
         pass
 
 

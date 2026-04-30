@@ -9,7 +9,7 @@ class MicroClusterType(Enum):
     # diferent types of the clusters for the pruning phase
     POTENTIAL = "potential"
     OUTLIER = "outlier"
-    CORE = "core" # might not need this
+    #CORE = "core" # might not need this
 
 class MicroCluster:
     def __init__(self, mc_id: int, t_0: int, mc_type: MicroClusterType, point: np.ndarray):
