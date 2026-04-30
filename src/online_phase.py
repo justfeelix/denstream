@@ -42,6 +42,7 @@ class DenStreamOnlinePhase(OnlinePhase_StreamClusterer):
         summary_id = -1
         
         # TODO: Implement algorithm 1: find nearest PMC and try merging, if it fails, find nearest OMC and try to merge. when merging check if it can be promoted to PMC. if both fail , create a new OMC 
+        # NOTE: pay attention to efficeincy during distance calculation
         
         # TODO: Implement algorithm 2: periodic cleanup NOTE: need to call _periodic_cleanup()
         
