@@ -35,7 +35,7 @@ class MicroCluster:
             self.insert_sample(point, 1.0) # weight is 1.0 before decay
 
     # we need to implement these methods / consider adding more helpers as you see fit
-    def insert_sample(self, point: np.ndarray, weight: float):
+    def insert_sample(self, point: np.ndarray, weight: float = 1.0):
         """
         Adds a new point to the CF tuple, when a point successfully falls within the radius of this micro cluster
         Formula: w = w + weight, CF1 = CF1 + point, CF2 = CF2 + (point^2)
@@ -71,5 +71,12 @@ class MicroCluster:
         return math.sqrt(max(0.0, sum_of_variances))
     
     def copy(self) -> 'MicroCluster':
-
-        pass
+        """
+        Creates a true deep copy of this micro-cluster. We can use this to safely simulate merges in the Online phase without altering the original
+        """  
+        new_mc = MicroCluster(self.mc_id, self.t_0, self.mc_type, point=None)
+        new_mc.last_update = self.last_update
+        new_mc.weight = self.weight
+        new_mc.CF1 = self.CF1.copy()
+        new_mc.CF2 = self.CF2.copy()
+        return new_mc
