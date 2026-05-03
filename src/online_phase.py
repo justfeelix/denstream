@@ -3,7 +3,6 @@ Online phase of DenStream algorithm
 """
 
 import numpy as np
-from enum import Enum
 import math
 from baseframework.stream_clustering import OnlinePhase_StreamClusterer
 from baseframework.utils import distance_calc
@@ -39,6 +38,8 @@ class DenStreamOnlinePhase(OnlinePhase_StreamClusterer):
                 f"beta*mu must be > 1 for Tp to be well-defined "
                 f"(got beta={beta}, mu={mu}, beta*mu={beta*mu})"
             )
+        if lambda_decay <= 0:
+            raise ValueError(f"lambda_decay must be > 0 (got {lambda_decay})")
 
         
         # Calculate Tp (Pruning Trigger) based on the paper's formula (Eq 4.1)        
@@ -52,7 +53,6 @@ class DenStreamOnlinePhase(OnlinePhase_StreamClusterer):
         self.o_micro_clusters = {}
 
         self.mc_counter = 0 # use this counter as generator for micro clusters IDs (increase by 1 when creating a new cluster) -> avoid duplicates
-        self.current_time = 0
 
 
     def learn_one(self, x: np.ndarray, t: int) -> tuple[int, int, str]:
@@ -61,7 +61,6 @@ class DenStreamOnlinePhase(OnlinePhase_StreamClusterer):
         should also call _periodic_cleanup()
         """
         # Step 0: Update Time
-        self.current_time = t # update time
         event_log = []
         summary_id = -1
         
