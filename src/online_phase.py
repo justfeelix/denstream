@@ -100,6 +100,36 @@ class DenStreamOnlinePhase(OnlinePhase_StreamClusterer):
         return nearest_mc, float(distances[nearest_idx])
 
 
+    def _try_merge(self, mc: MicroCluster, x: np.ndarray, t: int) -> bool:
+        """
+        Test whether x can be merged into mc without exceeding epsilon.
+
+        Uses copy-then-test to avoid mutating mc on a failed attempt.
+        If the test passes, performs the actual merge on mc.
+        """
+        # mc has already been decay-updated by _find_nearest, so the copy starts
+        # from a current state.
+        test_copy = mc.copy()
+        test_copy.insert_sample(x)
+
+        if test_copy.get_radius() <= self.epsilon:
+            # commit the merge on the original
+            mc.insert_sample(x)
+            return True
+
+        return False
+    
+
+    def _promote_to_pmc(self, mc: MicroCluster):
+        """
+        Move a micro-cluster from the outlier buffer to the PMC dict
+        and update its type tag.
+
+        The mc keeps its mc_id (permanent ID design decision).
+        """
+        self.p_micro_clusters[mc.mc_id] = mc
+        del self.o_micro_clusters[mc.mc_id]
+        mc.mc_type = MicroClusterType.POTENTIAL
 
     def _periodic_cleanup(self, t: int, event_log: list):
         """
