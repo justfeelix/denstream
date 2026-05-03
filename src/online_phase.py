@@ -47,17 +47,16 @@ class DenStreamOnlinePhase(OnlinePhase_StreamClusterer):
         # step 2: try the OMCs (if step 1 fails): find nearest OMC and try to merge
         # - when merging check if it can be promoted to PMC. 
         # step 3: create new OMC (if both step 1 and 2 fail)
-        # step 4: clean up
+        # step 4: clean up:  call _periodic_cleanup()
          
         # NOTE: pay attention to efficeincy during distance calculation!
+        # check the method utils.distance_calc() in the base framework 
 
         # NOTE: here we pay attention to the initialization phase (section 4.1)
         # we have 2 options:
         # option 1: as the paper suggests, we can take the frist 1000 points of the stream, hold them in memory and then run the standard offline DBSCAN on them (creating the first batch of PMCs)
         # option 2: let the algorithm take care of this. this means the algorithm will try to find closest PMC (it fails), then tries to find closest OMC (it fails) so it will create new OMCs for the first few points and it will merge them quickly and promote them to PMCs
 
-        
-        # TODO: Implement algorithm 2: periodic cleanup NOTE: need to call _periodic_cleanup()
 
         self.current_time = t
         # return 
