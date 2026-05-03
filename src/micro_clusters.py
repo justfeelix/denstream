@@ -50,11 +50,11 @@ class MicroCluster:
         formula: f(t) = 2^(-lambda * dt)
         multiply weight, CF1, and CF2 by this factor, then update self.last_update
         """
-        fading_fraction = 2 ** (-decay_factor * time_diff)
+        fading_fraction = 2.0 ** (-decay_factor * time_diff)
         self.weight *= fading_fraction
         self.CF1 *= fading_fraction
         self.CF2 *= fading_fraction
-        self.last_update = time_diff#TODO
+        self.last_update += time_diff
 
 
 
@@ -66,7 +66,9 @@ class MicroCluster:
         """Calculates and returns the radius r = sqrt((CF2 / w) - (CF1 / w)^2)
         """
         #before a point is allowed to merge into a micro cluster, the Online Phase simulates what the new radius would be. If get_radius() returns a number larger than epsilon, the merge is rejected
-        return math.sqrt((self.CF2 / self.weight) - (self.CF1 / self.weight)^2)
+        variance_vector = (self.CF2 / self.weight) - (self.CF1 / self.weight)**2
+        sum_of_variances = np.sum(variance_vector)
+        return math.sqrt(max(0.0, sum_of_variances))
     
     def copy(self) -> 'MicroCluster':
 
