@@ -21,8 +21,18 @@ class DenStreamOnlinePhase(OnlinePhase_StreamClusterer):
         self.beta = beta
         self.lambda_decay = lambda_decay
 
-        # Calculate Tp (Pruning Trigger) based on the paper's formula (Eq 4.1)
-        # self.Tp = ...
+        if beta * mu <= 1.0:
+            raise ValueError(
+                f"beta*mu must be > 1 for Tp to be well-defined "
+                f"(got beta={beta}, mu={mu}, beta*mu={beta*mu})"
+            )
+
+        
+        # Calculate Tp (Pruning Trigger) based on the paper's formula (Eq 4.1)        
+        self.Tp = math.ceil(
+        (1.0 / lambda_decay) * math.log2((beta * mu) / (beta * mu - 1.0))
+        )
+
 
         # Dictionaries mapping mc_id -> MicroCluster object
         self.p_micro_clusters = {}
