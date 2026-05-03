@@ -12,18 +12,18 @@ class DenStream:
     Orechestrates both online and offline phases
     """
 
-    #TODO add and pass args as needed
-    def __init__(self, epsilon=0.1, mu=5.0, beta=0.2, lambda_decay=0.25): 
+    def __init__(self, epsilon=0.1, mu=10.0, beta=0.2, lambda_decay=0.25):
         """
-        Initialize DenStream algorithm with requried parameters
+        Initialize DenStream algorithm.
 
-        Args:
-            #TODO
+        Parameters match Section 6.1 of the paper (scaled for [0,1] data):
+            epsilon      – micro-cluster radius threshold
+            mu           – minimum weight for a core micro-cluster
+            beta         – outlier weight threshold factor (0 < beta <= 1)
+            lambda_decay – fading function decay factor
         """
-        #TODO correct initialization / change as needed
-        self.online_phase = DenStreamOnlinePhase(epsilon=epsilon, mu=mu, beta=beta, lambda_decay=lambda_decay) 
-        self.offline_phase = DenStreamOfflinePhase()
-        pass
+        self.online_phase = DenStreamOnlinePhase(epsilon=epsilon, mu=mu, beta=beta, lambda_decay=lambda_decay)
+        self.offline_phase = DenStreamOfflinePhase(epsilon=epsilon, mu=mu)
 
     
     # for online
@@ -33,30 +33,23 @@ class DenStream:
         return self.online_phase.learn(xs, ts)
     
     # for offline
-    def predict(self, X_batch=None):
-        """Trigger the offline phase to get the current clustering"""
+    def predict(self, assignments=None):
+        """Trigger the offline phase to get the current clustering.
 
-        # TODO: fetch summaries and call the framework's predict_assignment method
-
-        # here differntiate between two cases:
-        #   1. if the user wants to know how the bubbles are clustered, they call predict() with no argument and return predict_summaries()
-        #   2. if the user wants to evaluate the algorithm against a specific batch of raw points (for example when evaluating with cmm) they can call predict(X_batch)
-
-        # fetch summaries
+        Two modes:
+          predict()                   – return macro-cluster label per PMC/OMC
+                                        (dict mapping summary_id -> label)
+          predict(assignments=[...])  – map a list of summary_ids (as returned
+                                        by learn()) to macro-cluster labels.
+                                        Each point already has an authoritative
+                                        micro-cluster assignment from the online
+                                        phase; this simply looks up its label.
+        """
         summaries = self.online_phase.get_summary()
-        # 1st case
-        if X_batch is None:
+
+        if assignments is None:
             return self.offline_phase.predict_summaries(summaries)
-        #2nd case
-        else:
-            # The user wants to cluster specific raw data points (X_batch)
-            assignments = []
-            #TODO:  assign a raw point to a cluster -> find its nearest PMC
 
-            # at the end call the self.offline_phase.predict_assignment(assignments, summaries)
-            # and return ouput
-
-
-        pass
+        return self.offline_phase.predict_assignment(assignments, summaries)
 
 
