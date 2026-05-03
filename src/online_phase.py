@@ -21,6 +21,8 @@ class DenStreamOnlinePhase(OnlinePhase_StreamClusterer):
         self.beta = beta
         self.lambda_decay = lambda_decay
 
+        # Tp: minimum time span before a PMC fades into outlier territory
+        # Requires beta*mu > 1, otherwise log is undefined / negative.
         if beta * mu <= 1.0:
             raise ValueError(
                 f"beta*mu must be > 1 for Tp to be well-defined "
@@ -71,6 +73,32 @@ class DenStreamOnlinePhase(OnlinePhase_StreamClusterer):
         self.current_time = t
         # return 
         return (summary_id, summary_id, " | ".join(event_log))
+    
+    def _find_nearest(self, x: np.ndarray, clusters_dict: dict, t: int):
+        """
+        Find the micro-cluster in clusters_dict whose center is closest to x.
+
+        Applies lazy decay to all clusters in the dict before computing distances,
+        so centers reflect the current state at time t.
+        """
+        if not clusters_dict:
+            return None, float('inf')
+
+        mc_ids = list(clusters_dict.keys())
+        centers = []
+        for mc_id in mc_ids:
+            mc = clusters_dict[mc_id]
+            self._apply_decay_to(mc, t)
+            centers.append(mc.get_center())
+
+        centers = np.array(centers)
+        # framework helper for euclidean distance from one point to many
+        distances = distance_calc(x, centers, dist="euclidean")
+
+        nearest_idx = int(np.argmin(distances))
+        nearest_mc = clusters_dict[mc_ids[nearest_idx]]
+        return nearest_mc, float(distances[nearest_idx])
+
 
 
     def _periodic_cleanup(self, t: int, event_log: list):
