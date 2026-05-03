@@ -12,9 +12,20 @@ from .micro_clusters import MicroCluster, MicroClusterType
 
 
 class DenStreamOnlinePhase(OnlinePhase_StreamClusterer):
+    """
+    Online phase of DenStream.
+    
+    Initialization note: we deliberately skip the paper's batch DBSCAN
+    initialization (for now). Instead, the algorithm bootstraps itself:
+    early points create OMCs, which are promoted to PMCs once they accumulate
+    enough weight (>= beta*mu). This trades a slightly slower start-up for
+    significantly simpler implementation and robustness on small datasets.
+    
+    A future variant could add the batch initialization for closer paper
+    fidelity if needed.
+    """
 
     def __init__(self, epsilon: float, mu: float, beta: float, lambda_decay: float):
-        # TODO implement and read documentation in super class add argruments as needed
         super().__init__()
         self.epsilon = epsilon
         self.mu = mu
@@ -49,30 +60,58 @@ class DenStreamOnlinePhase(OnlinePhase_StreamClusterer):
         Routes the point to the nearest PMC, OMC, or creates a new OMC.
         should also call _periodic_cleanup()
         """
+        # Step 0: Update Time
         self.current_time = t # update time
         event_log = []
         summary_id = -1
         
-        # TODO: Implement algorithm 1: 
-        # Step 0: Update Time
         # step 1: try the PMCs: find nearest PMC and try merging, 
+        nearest_pmc, _ = self._find_nearest(x, self.p_micro_clusters, t)
+        merged = False
+        if nearest_pmc is not None:
+            if self._try_merge(nearest_pmc, x, t):
+                summary_id = nearest_pmc.mc_id
+                event_log.append(f"merged_into_pmc_{summary_id}")
+                merged = True
+
         # step 2: try the OMCs (if step 1 fails): find nearest OMC and try to merge
         # - when merging check if it can be promoted to PMC. 
+        if not merged:
+            nearest_omc, _ = self._find_nearest(x, self.o_micro_clusters, t)
+            if nearest_omc is not None:
+                if self._try_merge(nearest_omc, x, t):
+                    summary_id = nearest_omc.mc_id
+                    event_log.append(f"merged_into_omc_{summary_id}")
+                    merged = True
+
+                    # promotion check: paper Algorithm 1 line 8
+                    if nearest_omc.weight > self.beta * self.mu:
+                        self._promote_to_pmc(nearest_omc)
+                        event_log.append(f"promoted_{summary_id}")
+
         # step 3: create new OMC (if both step 1 and 2 fail)
+        if not merged:
+            new_mc = MicroCluster(
+                mc_id=self.mc_counter,
+                t_0=t,
+                mc_type=MicroClusterType.OUTLIER,
+                point=x,
+            )
+            self.o_micro_clusters[self.mc_counter] = new_mc
+            summary_id = self.mc_counter
+            self.mc_counter += 1
+            event_log.append(f"created_omc_{summary_id}")
+
         # step 4: clean up:  call _periodic_cleanup()
-         
+        if t > 0 and t % self.Tp == 0:
+            self._periodic_cleanup(t, event_log)
+
+        return (summary_id, -1, " | ".join(event_log)) 
+
         # NOTE: pay attention to efficeincy during distance calculation!
         # check the method utils.distance_calc() in the base framework 
 
-        # NOTE: here we pay attention to the initialization phase (section 4.1)
-        # we have 2 options:
-        # option 1: as the paper suggests, we can take the frist 1000 points of the stream, hold them in memory and then run the standard offline DBSCAN on them (creating the first batch of PMCs)
-        # option 2: let the algorithm take care of this. this means the algorithm will try to find closest PMC (it fails), then tries to find closest OMC (it fails) so it will create new OMCs for the first few points and it will merge them quickly and promote them to PMCs
-
-
-        self.current_time = t
-        # return 
-        return (summary_id, summary_id, " | ".join(event_log))
+        
     
     def _find_nearest(self, x: np.ndarray, clusters_dict: dict, t: int):
         """
@@ -149,7 +188,6 @@ class DenStreamOnlinePhase(OnlinePhase_StreamClusterer):
             event_log.append(f"pruned PMC {mc_id}")
 
         # Prune OMCs: weight < xi(tc, t0) means co is unlikely to become a PMC
-        # Eq 4.2: xi = (2^(-lambda*(tc - t0 + Tp)) - 1) / (2^(-lambda*Tp) - 1)
         to_delete = []
         for mc_id, mc in self.o_micro_clusters.items():
             self._apply_decay_to(mc, t)
