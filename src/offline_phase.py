@@ -14,6 +14,8 @@ class DenStreamOfflinePhase(OfflinePhase_Clusterer):
         super().__init__()
         self.epsilon = epsilon
         self.mu = mu
+        # Definition 4.1: eps = 2*epsilon; core point iff weight >= mu
+        self.db = DBSCAN(eps=2.0 * self.epsilon, min_samples=int(np.ceil(self.mu)), metric='euclidean')
 
     def predict_summaries(self, summaries: dict) -> dict:
         """
@@ -44,10 +46,7 @@ class DenStreamOfflinePhase(OfflinePhase_Clusterer):
         centers = np.array([summaries[mc_id].get_center() for mc_id in pmc_ids])
         weights = np.array([summaries[mc_id].weight for mc_id in pmc_ids])
 
-        #NOTE: maybe move DBSCAN to the constructor - epsilon and mu dont change throughout the algorithm so we can initilize it just once and then just call self.db.fit_predict()
-        # Definition 4.1: eps = 2*epsilon; core point iff weight >= mu
-        db = DBSCAN(eps=2.0 * self.epsilon, min_samples=int(np.ceil(self.mu)), metric='euclidean')
-        labels = db.fit_predict(centers, sample_weight=weights)
+        labels = self.db.fit_predict(centers, sample_weight=weights)
 
         for mc_id, label in zip(pmc_ids, labels):
             result[mc_id] = label
