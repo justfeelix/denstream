@@ -8,7 +8,7 @@ based on the [DenStream Paper](DenStreamPaper.pdf).
 ## Installation
 1. Clone the repository and navigate into the directory:
 ```bash
-   git clone https://gitlab2.cip.ifi.lmu.de/dbs_sep/dbs_streamclustering26/block1/denstream.git
+   git clone --recurse-submodules https://gitlab2.cip.ifi.lmu.de/dbs_sep/dbs_streamclustering26/block1/denstream.git
    cd denstream
    ```
 2. (Optional but recommended) Create and activate a virtual environment:
@@ -46,7 +46,7 @@ Example run (Complex9 dataset):
 
 ### Option 2: Python / Jupyter Notebook
 
-You can easily import DenStream into your own scripts or use the provided ```playground.ipynb``` for live visualization
+You can easily import DenStream into your own scripts or use the provided [playground.ipynb](playground.ipynb) for live visualization
 ```python
 import numpy as np
 from src.denstream import DenStream
