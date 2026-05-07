@@ -12,15 +12,16 @@ class DenStream:
     Orechestrates both online and offline phases
     """
 
-    def __init__(self, epsilon=0.1, mu=10.0, beta=0.2, lambda_decay=0.25):
+    def __init__(self, epsilon=0.1, mu=10.0, beta=0.2, lambda_decay=0.00025):
         """
         Initialize DenStream algorithm.
 
-        Parameters match Section 6.1 of the paper (scaled for [0,1] data):
+        Parameters follow Section 6.1 of the paper (scaled for [0,1] data):
             epsilon      – micro-cluster radius threshold
             mu           – minimum weight for a core micro-cluster
             beta         – outlier weight threshold factor (0 < beta <= 1)
-            lambda_decay – fading function decay factor
+            lambda_decay – fading function decay factor per processed point
+                           (paper value 0.25 assumes 1000-point time units)
         """
         self.online_phase = DenStreamOnlinePhase(epsilon=epsilon, mu=mu, beta=beta, lambda_decay=lambda_decay)
         self.offline_phase = DenStreamOfflinePhase(epsilon=epsilon, mu=mu)

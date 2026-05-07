@@ -27,7 +27,7 @@ You can run the algorithm in two ways: via the command-line evaluation script, o
 Use ```run_denstream.py``` to evaluate the algorithm on standard datasets
 Example run (Complex9 dataset):
 ```bash
-    python run_denstream.py --dataset complex9 --epsilon 0.04 --mu 2.0 --beta 0.55 --lambda_decay 0.0001 --offline_interval 1
+    python run_denstream.py --dataset complex9 --epsilon 0.04 --mu 2.0 --beta 0.55 --lambda_decay 0.00025 --offline_interval 1
    ```
 
 #### Available Arguments: 
@@ -40,7 +40,7 @@ Example run (Complex9 dataset):
 
 ```--beta```: Outlier weight threshold factor (Note: beta * mu must be > 1)
 
-```--lambda_decay```: Fading function decay factor
+```--lambda_decay```: Fading function decay factor (per-point time unit).
 
 ```--offline_interval```: Run offline clustering and evaluation every N batches
 
@@ -52,7 +52,7 @@ import numpy as np
 from src.denstream import DenStream
 
 # 1. Initialize the algorithm
-denstream = DenStream(epsilon=0.04, mu=2.0, beta=0.55, lambda_decay=0.0001)
+denstream = DenStream(epsilon=0.04, mu=2.0, beta=0.55, lambda_decay=0.00025)
 
 # 2. Feed data in batches (Online Phase)
 # Example data: batch (2D array), timestamps (1D array)

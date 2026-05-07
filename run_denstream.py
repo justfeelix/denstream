@@ -41,15 +41,15 @@ def main():
     parser.add_argument('--batch_size', type=int, default=500,
                         help='Number of instances per batch')
 
-    # DenStream parameters — defaults from paper Section 6.1
+    # DenStream parameters — paper defaults, with per-point lambda scaling
     parser.add_argument('--epsilon', type=float, default=0.1,
                         help='Micro-cluster radius threshold (epsilon)')
     parser.add_argument('--mu', type=float, default=10.0,
                         help='Minimum weight for a core micro-cluster (mu)')
     parser.add_argument('--beta', type=float, default=0.2,
                         help='Outlier weight threshold factor (beta, 0 < beta <= 1)')
-    parser.add_argument('--lambda_decay', type=float, default=0.25,
-                        help='Fading function decay factor (lambda)')
+    parser.add_argument('--lambda_decay', type=float, default=0.00025,
+                        help='Fading function decay factor (per-point lambda; paper uses 0.25 per 1000-point unit)')
 
     # Offline phase / evaluation
     parser.add_argument('--offline_interval', type=int, default=1,
